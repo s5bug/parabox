@@ -73,7 +73,7 @@ object GameState {
       )
     )
     lazy val container: BoxF[Int] = BoxF(
-      parent = None,
+      parent = Some(1),
       color = BoxColor.Blue,
       tiles = Vector(
         Vector(Tile.Wall, Tile.Wall, Tile.Wall, Tile.Wall, Tile.Wall, Tile.Wall, Tile.Wall),

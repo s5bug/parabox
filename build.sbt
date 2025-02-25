@@ -1,3 +1,5 @@
+import indigoplugin._
+
 lazy val core = crossProject(JVMPlatform, JSPlatform)
   .crossType(CrossType.Pure)
   .in(file("core"))
@@ -5,7 +7,7 @@ lazy val core = crossProject(JVMPlatform, JSPlatform)
     organization := "tf.bug",
     name := "parabox-core",
     version := "0.1.0",
-    scalaVersion := "3.1.2",
+    scalaVersion := "3.6.3",
     scalacOptions ++= Seq(
       "-no-indent",
       "-old-syntax",
@@ -22,21 +24,21 @@ lazy val game = project
     organization := "tf.bug",
     name := "parabox-game",
     version := "0.1.0",
-    scalaVersion := "3.1.2",
+    scalaVersion := "3.6.3",
     scalacOptions ++= Seq(
       "-no-indent",
       "-old-syntax",
     ),
 
-    showCursor := true,
-    title := "Parabox",
-    gameAssetsDirectory := "src/main/resources",
-    windowStartWidth := 1600,
-    windowStartHeight := 900,
+    indigoOptions := IndigoOptions.defaults
+      .cursorVisible
+      .withTitle("Parabox")
+      .withAssetDirectory((Compile / resourceDirectory).value.relativeTo(baseDirectory.value / "..").get.getPath)
+      .withWindowSize(1600, 900),
     libraryDependencies ++= Seq(
-      "io.indigoengine" %%% "indigo" % "0.12.1",
-      "io.indigoengine" %%% "indigo-extras" % "0.12.1",
-      "io.indigoengine" %%% "indigo-json-circe" % "0.12.1",
+      "io.indigoengine" %%% "indigo" % "0.18.0",
+      "io.indigoengine" %%% "indigo-extras" % "0.18.0",
+      "io.indigoengine" %%% "indigo-json-circe" % "0.18.0",
       ("org.scala-js" %%% "scalajs-java-securerandom" % "1.0.0").cross(CrossVersion.for3Use2_13),
     ),
   )

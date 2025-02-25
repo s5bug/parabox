@@ -12,8 +12,8 @@ object Game extends IndigoGame[Unit, Unit, GameState, Unit] {
   override def initialScene(bootData: Unit): Option[SceneName] = Some(InPuzzle.name)
 
   override def eventFilters: EventFilters = EventFilters.AllowAll
-
-  override def boot(flags: Map[String, String]): Outcome[BootResult[Unit]] =
+  
+  override def boot(flags: Map[String, String]): Outcome[BootResult[Unit, GameState]] =
     Outcome(
       BootResult.noData(
         GameConfig(1600, 900)
@@ -27,11 +27,11 @@ object Game extends IndigoGame[Unit, Unit, GameState, Unit] {
   override def initialModel(startupData: Unit): Outcome[GameState] = Outcome(GameState.default)
 
   override def initialViewModel(startupData: Unit, model: GameState): Outcome[Unit] = Outcome(())
+  
+  override def updateModel(context: Context[Unit], model: GameState): GlobalEvent => Outcome[GameState] = _ => Outcome(model)
 
-  override def updateModel(context: FrameContext[Unit], model: GameState): GlobalEvent => Outcome[GameState] = _ => Outcome(model)
-
-  override def updateViewModel(context: FrameContext[Unit], model: GameState, viewModel: Unit): GlobalEvent => Outcome[Unit] = _ => Outcome(())
-
-  override def present(context: FrameContext[Unit], model: GameState, viewModel: Unit): Outcome[SceneUpdateFragment] = Outcome(SceneUpdateFragment.empty)
+  override def updateViewModel(context: Context[Unit], model: GameState, viewModel: Unit): GlobalEvent => Outcome[Unit] = _ => Outcome(())
+  
+  override def present(context: Context[Unit], model: GameState, viewModel: Unit): Outcome[SceneUpdateFragment] = Outcome(SceneUpdateFragment.empty)
 
 }

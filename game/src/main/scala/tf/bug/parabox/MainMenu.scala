@@ -16,12 +16,12 @@ object MainMenu extends Scene[Unit, Unit, Unit] {
 
   override def eventFilters: EventFilters = EventFilters.AllowAll
 
-  override def subSystems: Set[SubSystem] = Set()
+  override def subSystems: Set[SubSystem[Unit]] = Set()
 
-  override def updateModel(context: FrameContext[Unit], model: Unit): GlobalEvent => Outcome[Unit] = _ => Outcome(model)
+  override def updateModel(context: SceneContext[Unit], model: Unit): GlobalEvent => Outcome[Unit] = _ => Outcome(model)
 
-  override def updateViewModel(context: FrameContext[Unit], model: Unit, viewModel: Unit): GlobalEvent => Outcome[Unit] = _ => Outcome(viewModel)
+  override def updateViewModel(context: SceneContext[Unit], model: Unit, viewModel: Unit): GlobalEvent => Outcome[Unit] = _ => Outcome(viewModel)
 
-  override def present(context: FrameContext[Unit], model: Unit, viewModel: Unit): Outcome[SceneUpdateFragment] = Outcome(SceneUpdateFragment.empty)
+  override def present(context: SceneContext[Unit], model: Unit, viewModel: Unit): Outcome[SceneUpdateFragment] = Outcome(SceneUpdateFragment.empty)
   
 }

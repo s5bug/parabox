@@ -2,6 +2,7 @@ package tf.bug.parabox
 
 import indigo.*
 import indigo.scenes.*
+import scala.annotation.tailrec
 
 object InPuzzle extends Scene[Unit, GameState, Unit] {
 
@@ -49,20 +50,20 @@ object InPuzzle extends Scene[Unit, GameState, Unit] {
 
   override def eventFilters: EventFilters = EventFilters.AllowAll
 
-  override def subSystems: Set[SubSystem] = Set()
-
-  override def updateModel(context: FrameContext[Unit], model: GameState): GlobalEvent => Outcome[GameState] = {
-    case KeyboardEvent.KeyDown(Key.UP_ARROW) => Outcome(model.move(Direction.Up))
-    case KeyboardEvent.KeyDown(Key.DOWN_ARROW) => Outcome(model.move(Direction.Down))
-    case KeyboardEvent.KeyDown(Key.LEFT_ARROW) => Outcome(model.move(Direction.Left))
-    case KeyboardEvent.KeyDown(Key.RIGHT_ARROW) => Outcome(model.move(Direction.Right))
+  override def subSystems: Set[SubSystem[GameState]] = Set()
+  
+  override def updateModel(context: SceneContext[Unit], model: GameState): GlobalEvent => Outcome[GameState] = {
+    case KeyboardEvent.KeyDown(Key.ARROW_UP) => Outcome(model.move(Direction.Up))
+    case KeyboardEvent.KeyDown(Key.ARROW_DOWN) => Outcome(model.move(Direction.Down))
+    case KeyboardEvent.KeyDown(Key.ARROW_LEFT) => Outcome(model.move(Direction.Left))
+    case KeyboardEvent.KeyDown(Key.ARROW_RIGHT) => Outcome(model.move(Direction.Right))
     case _ => Outcome(model)
   }
 
-  override def updateViewModel(context: FrameContext[Unit], model: GameState, viewModel: Unit): GlobalEvent => Outcome[Unit] =
+  override def updateViewModel(context: SceneContext[Unit], model: GameState, viewModel: Unit): GlobalEvent => Outcome[Unit] =
     _ => Outcome(viewModel)
 
-  override def present(context: FrameContext[Unit], model: GameState, viewModel: Unit): Outcome[SceneUpdateFragment] = {
+  override def present(context: SceneContext[Unit], model: GameState, viewModel: Unit): Outcome[SceneUpdateFragment] = {
     val playerBox = model.boxes(0)
     val parentBox = playerBox.parent
     parentBox match {
@@ -76,16 +77,42 @@ object InPuzzle extends Scene[Unit, GameState, Unit] {
 
         val addBlanks = SceneUpdateFragment.empty.addCloneBlanks(cloneBlanks.flatMap {
           case (color, BoxCloneBlanks(wall, empty)) => List(wall, empty)
-        }.toList)
+        }.toList*)
 
-        val renderBoxes = renderBox(model.boxes, Rectangle(containerXOff, containerYOff, containerWH, containerWH), pbi)
+        val (biggestId, boundingBox) = findEnclosing(model.boxes, Rectangle(containerXOff, containerYOff, containerWH, containerWH), screenWidth, screenHeight, pbi)
+        val renderBoxes = renderBox(model.boxes, boundingBox, biggestId)
 
         val cloneBatches = renderBoxes.map {
-          case (cid, cbd) => CloneBatch(cid, cbd.toArray)
+          case (cid, cbd) => CloneBatch(cid, cbd*)
         }.toList
 
-        Outcome(addBlanks |+| SceneUpdateFragment(cloneBatches))
+        Outcome(addBlanks |+| SceneUpdateFragment(cloneBatches*))
       case None => ???
+    }
+  }
+
+  @tailrec def findEnclosing(boxes: Map[Int, BoxF[Int]], bounds: Rectangle, screenWidth: Int, screenHeight: Int, id: Int): (Int, Rectangle) = {
+    if(bounds.width > screenWidth && bounds.height > screenHeight) {
+      (id, bounds)
+    } else {
+      val box = boxes(id)
+      box.parent match {
+        case Some(parentId) =>
+          val parentBox = boxes(parentId)
+          val (hereX, hereY) = parentBox.positions(id)
+          val boxHeight = parentBox.tiles.length
+          val boxWidth = parentBox.tiles(hereY).length
+
+          val newHeight = bounds.height * boxHeight
+          val newWidth = bounds.width * boxWidth
+
+          val xInset = bounds.width * hereX
+          val yInset = bounds.width * hereY
+
+          findEnclosing(boxes, Rectangle(bounds.x - xInset, bounds.y - yInset, newWidth, newHeight), screenWidth, screenHeight, parentId)
+        case None =>
+          (id, bounds)
+      }
     }
   }
 
